@@ -1,0 +1,186 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Simple message-driven microservice in JAVA</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- -->
+		<link rel="stylesheet" href="css/pres.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+			
+				<section>
+					<h2>Simple message-driven microservice in JAVA</h2>
+					<img data-src="images/rmq.png" width="650" />
+					<!-- style="float: left" -->
+					<img data-src="images/scs.jpg"  />
+				</section>
+				
+				
+				<section>
+					<h2>RabbitMQ</h2>
+					<ul>
+						<li>Open source written in Earlang</li>
+						<li>Maintained since 2013 by Pivotal (Spring)</li>
+						<li>Broker which implements <strong>AMQP</strong> protocol
+							<ul>
+								<li>standard way of messages exchanges between heterogeneous applications</li>
+								<li>not an API</li>
+								<li>independant of technology (Python, Java, PHP...)</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+				
+				<section>
+					<h2>RabbitMQ core concepts</h2>
+					<p style="text-align: left">
+						<span style="color:red;">Exchange -</span> where the messages are published<br />
+						<span style="color:red;">Queue -</span> where the messages are consumed<br />
+						<span style="color:red;">Binding -</span> distribution rules from exchanges to queues
+					</p>
+					<img data-src="images/hello-world-example-routing.png" />
+				</section>
+				
+				<section>
+					<h2>RabbitMQ clients</h2>
+					<p>There are a lot of client implementations : Java, .Net, PHP, Go, Ruby, Python, Scala, Perl...</p>
+					<p>In Java, several possibilities :</p>
+					<ul>
+						<li>RabbitMQ Java client</li>
+						<li>Apache Camel - RabbitMQ component</li>
+						<li>Spring AMQP</li>
+						<li>Spring Cloud Stream</li>
+					</ul>
+				</section>
+				
+				
+				<section>
+					<h2>RabbitMQ for developers</h2>
+					<p>Official docker image available on Docker Hub</p>
+					<div>
+						<pre><code class="hljs">docker run --rm -d --hostname my-rabbit --name rabbit 
+-p 5672:5672 -p 15672:15672 rabbitmq:3-management</code></pre>
+					</div>
+					<p>Management console : <a href="http://localhost:15672">http://localhost:15672</a></p>
+				</section>
+				
+				<section>
+					<h2>Spring Cloud Stream</h2>
+					<p>Built on top of Spring Boot and Spring Integration, it is used to build easily message/event-driven microservices.</p>
+					<p>It supports bindings with <strong>RabbitMQ</strong> and <strong>Apache Kafka</strong> brokers.</p>
+					<p>It allows minimal configuration and connexion code, thanks to annotations, to focus on <strong>business</strong> code.</p>
+				</section>
+				
+				<section>
+					<h2>Annotation style programming</h2>
+					<p style="text-align: left;"><em>@EnableBinding</em> on class declaration<br/>
+					<em>@StreamListener</em> on method declaration to consume messages<br />
+					<em>@SendTo</em> on method declaration (+ return type) to publish messages
+					</p>
+				</section>
+				
+				<section>
+					<h2>Sample</h2>
+					<pre><code class="hljs" data-trim>
+@EnableBinding(Sink.class)
+public class MessageHandler {
+
+	@StreamListener(Sink.INPUT)
+	public void handle(MyEvent myEvent) {
+	    // do what you have to do with the message
+		...
+	}
+}
+					</code></pre>
+				</section>
+				
+				<section>
+					<h2>Let's go</h2>
+					<img data-src="schema/schema.jpg"  />
+					<p style="text-align: left;">- Start RabbitMQ ! Play with the UI <a href="http://localhost:15672" target="blank">localhost:15672</a></p>
+					<p style="text-align: left;">- Create the 1st project <b>ShippingService</b> which will consume some order events.
+					(Can use Spring Initializr through <a href="https://start.spring.io" target="_blank">https://start.spring.io</a> or directly in IDE)</p>
+				</section>
+				
+				<section>
+					<h2>Try it</h2>
+					<ul>
+						<li>RabbitMq management UI => see the created exchange and queue</li>
+						<li>Publish a message with the UI and log it</li>
+						<li>Manage name and durability of created objects ; try properties
+						<ul style="font-size: xx-large;">
+							<li>spring.cloud.stream.bindings.input.destination</li>
+							<li>spring.cloud.stream.bindings.input.group</li>
+						</ul>
+						</li>
+					</ul>
+				</section>
+				
+				<section>
+					<h2>Build order-service</h2>
+					<img data-src="schema/schema.jpg"  />
+					<p>This one is publisher and consumer : a <em>processor</em> (<em>source</em> + <em>sink</em>)</p>
+					<p>It should connect to same exchange than shipping-service</p>
+				</section>
+				
+				<section>
+					<h2>Add an output</h2>
+					<img data-src="schema/schema2.jpg"  />
+					<p>You can extend <em>Processor</em> interface...</p>
+				</section>
+				
+				<section>
+					<h2>Error handling</h2>
+					<ul>
+						<li>Try to throw an Exception and see what happens</li>
+						<li>Manage DLQ with properties
+						<ul style="font-size: xx-large;">
+							<li>spring.cloud.stream.rabbit.bindings.input.consumer.auto-bind-dlq</li>
+							<li>spring.cloud.stream.rabbit.bindings.input.consumer.republish-to-dlq</li>
+							<li>(You will have to delete the queue before)</li>
+						</ul>
+						</li>
+					</ul>
+				</section>
+				
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+				]
+			});
+		</script>
+	</body>
+</html>
