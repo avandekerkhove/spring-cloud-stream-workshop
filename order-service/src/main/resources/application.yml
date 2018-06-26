@@ -7,3 +7,5 @@ spring:
           group: order-service
         output: 
           destination: order-events
+        outputToError:
+          destination: order-errors
