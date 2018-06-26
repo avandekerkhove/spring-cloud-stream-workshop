@@ -78,8 +78,7 @@
 					<h2>RabbitMQ for developers</h2>
 					<p>Official docker image available on Docker Hub</p>
 					<div>
-						<pre><code class="hljs">docker run --rm -d --hostname my-rabbit --name rabbit 
--p 5672:5672 -p 15672:15672 rabbitmq:3-management</code></pre>
+						<pre><code class="hljs">docker run --rm -d --hostname my-rabbit --name rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management</code></pre>
 					</div>
 					<p>Management console : <a href="http://localhost:15672">http://localhost:15672</a></p>
 				</section>
@@ -161,6 +160,34 @@ public class MessageHandler {
 						</ul>
 						</li>
 					</ul>
+				</section>
+				
+				<section>
+					<h2>Dynamic publishing</h2>
+					<p>It needs to code the message sending</p>
+					<pre><code class="hljs" data-trim>
+@Autowired
+private BinderAwareChannelResolver resolver;
+...
+resolver
+    .resolveDestination("nameofchannel")
+    .send(MessageBuilder.withPayload(messagePayload).build());
+					</code></pre>
+				</section>
+				
+				<section>
+					<h2>Handling in function of header</h2>
+					<pre><code class="hljs" data-trim style="font-size: 18px;">
+@StreamListener(target=Processor.INPUT, condition = "headers['bu-id']=='1'")
+public void receiveForBu1() {
+	// ...
+}
+@StreamListener(target=Processor.INPUT, condition = "headers['bu-id']!='1'")
+public void receiveForBuNot1() {
+	// ...
+}
+    				</code></pre>
+					<p>This is not compatible with <em>@SendTo</em> annotation &#x2639;</p>
 				</section>
 				
 			</div>
