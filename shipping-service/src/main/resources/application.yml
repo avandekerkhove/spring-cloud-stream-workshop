@@ -5,3 +5,10 @@ spring:
         input:
           destination: order-events
           group: shipping-service
+          
+      rabbit:
+        bindings:
+          input:
+            consumer:
+              republish-to-dlq: true
+              auto-bind-dlq: true
